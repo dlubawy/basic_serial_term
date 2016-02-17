@@ -12,7 +12,9 @@
 int main(void) {
     int fd;
 
+    // Open COM3 for read/write
     fd = open("/dev/ttyS2", O_RDWR | O_NOCTTY | O_NDELAY);
+    //Error handling
     if (fd == 1) {
         perror("open_port: Unable to open /dev/ttyS2 - ");
     }
@@ -22,7 +24,8 @@ int main(void) {
     struct termios options;
 
     tcgetattr(fd, &options);
-
+    
+    // Set baudrate and serial options
     cfsetispeed(&options, B9600);
     cfsetospeed(&options, B9600);
 
@@ -30,19 +33,26 @@ int main(void) {
 
     tcsetattr(fd, TCSANOW, &options);
     
-    char buf[256];
+    // Buffer for holding received data
+    char buf[32];
     char b = 0;
 
     int i = 0;
     do {
+        // Read the serial input
         int n = read(fd, &b, 1);
         buf[i] = b; i++;
-    } while(b != '\n');
+        // Output to the serial device
+        write(fd, "Hello World!\n", 13);
+    } while(i < (sizeof(buf) - 1));
+    // Make sure the buffer is NULL terminated
+    buf[i] = '\0';
     
+    // Print the stored buffer
     printf("Buffer: ");
     int k;
     for (k = 0; k < strlen(buf); k++) {
-       printf("%c", buf[k]);
+        printf("%c", buf[k]);
     }
 
     return(fd);
